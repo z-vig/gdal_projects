@@ -9,19 +9,21 @@ import h5py as h5
 
 gdal.UseExceptions()
 
-def convert_latlong(lat:float,lon:float,refdata_path:str) -> tuple[float,float]:
-    with gdal.Open(refdata_path) as ds:
+
+def convert_latlong(lat:float,lon:float,wktIn:str,wktOut:str) -> tuple[float,float]:
         inSR = osr.SpatialReference()
-        inSR.ImportFromWkt('GEOGCS["GCS_MOON", DATUM["D_MOON", SPHEROID["MOON",1737400,0]], PRIMEM["Reference_Meridian",0], UNIT["degree",0.0174532925199433, AUTHORITY["EPSG","9122"]]]')
+        inSR.ImportFromWkt(wktIn)
 
         outSR = osr.SpatialReference()
-        outSR.ImportFromWkt(ds.GetProjection())
+        outSR.ImportFromWkt(wktOut)
 
         Point = ogr.Geometry(ogr.wkbPoint)
         Point.AddPoint(lon,lat)
         Point.AssignSpatialReference(inSR)
         Point.TransformTo(outSR)
         print(f"Transformation: Lat:{lat} Long:{lon}\n   --> X:{Point.GetX()} Y:{Point.GetY()}")
+
+        return Point.GetX(),Point.GetY()
 
 
 if __name__ == "__main__":
